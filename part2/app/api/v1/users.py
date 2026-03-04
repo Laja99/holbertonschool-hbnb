@@ -66,14 +66,21 @@ class UserResource(Resource):
 
     @api.expect(update_user_model, validate=True)
     def put(self, user_id):
-        updated_user = facade.update_user(user_id, api.payload)
+        try:
+            updated_user = facade.update_user(user_id, api.payload)
 
-        if not updated_user:
-            return {"error": "User not found"}, 404
+            if not updated_user:
+                return {"error": "User not found"}, 404
 
-        return {
-            "id": updated_user.id,
-            "first_name": updated_user.first_name,
-            "last_name": updated_user.last_name,
-            "email": updated_user.email
-        }, 200
+            return {
+                "id": updated_user.id,
+                "first_name": updated_user.first_name,
+                "last_name": updated_user.last_name,
+                "email": updated_user.email
+            }, 200
+
+        except ValueError as e:
+            return {"error": str(e)}, 400
+
+        except TypeError as e:
+            return {"error": str(e)}, 400

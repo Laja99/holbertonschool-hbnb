@@ -1,5 +1,6 @@
 from app.models.base_model import BaseModel
-
+from app.models.review import Review
+from app.models.amenity import Amenity
 
 class Place(BaseModel):
     def __init__(
@@ -12,8 +13,9 @@ class Place(BaseModel):
         description=None,
         amenities=None,
         reviews=None,
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if not title:
             raise ValueError("Title is required")
@@ -41,3 +43,34 @@ class Place(BaseModel):
 
         self.amenities = amenities or []
         self.reviews = reviews or []
+
+    # Relationship Management Methods
+    def add_review(self, review):
+        if not isinstance(review, Review):
+            raise TypeError("review must be a Review instance")
+
+        if review.place_id != self.id:
+            raise ValueError("Review.place_id does not match this Place")
+
+        if review not in self.reviews:
+            self.reviews.append(review)
+
+    def add_amenity(self, amenity):
+        if not isinstance(amenity, Amenity):
+            raise TypeError("amenity must be an Amenity instance")
+        if amenity not in self.amenities:
+            self.amenities.append(amenity)
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "owner_id": self.owner_id,
+            "amenities": [a.id for a in self.amenities],
+            "reviews": [r.id for r in self.reviews],
+        })
+        return data
