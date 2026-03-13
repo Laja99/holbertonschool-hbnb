@@ -1,3 +1,4 @@
+from app import db
 import uuid
 from datetime import datetime
 from app.extensions import db
@@ -10,15 +11,26 @@ class BaseModel(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not self.id:
+            self.id = str(uuid.uuid4())
+        if not self.created_at:
+            self.created_at = datetime.utcnow()
+        if not self.updated_at:
+            self.updated_at = datetime.utcnow()
+
     def save(self):
-        """Update the updated_at timestamp"""
-        self.updated_at = datetime.utcnow()
+        """Updated the update time"""
+        self.updated_at = datetime.now()
+        db.session.add(self)
         db.session.commit()
 
     def update(self, data):
         """Update object attributes"""
         for key, value in data.items():
-            if hasattr(self, key):
+            if hasattr(self, key) and key not in ['id', 'created_at']:
                 setattr(self, key, value)
         self.save()
 

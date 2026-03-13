@@ -1,9 +1,12 @@
-from flask import Flask
+from flask import Flask, config
+from flask_sqlalchemy import SQLAlchemy
 from flask_restx import Api
 from config import config as config_map
 from .extensions import db, migrate, jwt, bcrypt
 
-def create_app(config_name="development"):
+db = SQLAlchemy()
+
+def create_app(config_class=config.DevelopmentConfig):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object('config.Config')
