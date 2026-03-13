@@ -139,15 +139,17 @@ class PlaceResource(Resource):
     @api.expect(place_model)
     @jwt_required()
     def put(self, place_id):
-        """Update a place - only the owner can modify"""
+        """Update a place - owner or admin can modify"""
         current_user_id = get_jwt_identity()
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
 
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
 
-        # Ownership check: only the owner can update their place
-        if place.owner_id != current_user_id:
+        # Only owner or admin can update
+        if not is_admin and place.owner_id != current_user_id:
             return {"error": "Unauthorized action"}, 403
 
         data = request.json
