@@ -7,8 +7,12 @@ class Review(BaseModel):
 
     text = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.String(36), nullable=False)
-    place_id = db.Column(db.String(36), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
+
+    # One-to-Many: User has many Reviews
+    user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+    # Note: relationship to Place is defined via backref in Place model
 
     def __init__(self, text, rating, user_id, place_id, **kwargs):
         super().__init__(**kwargs)
