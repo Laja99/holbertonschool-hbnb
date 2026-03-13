@@ -1,5 +1,6 @@
 from flask import request
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 
 api = Namespace('places', description='Place operations')
@@ -40,7 +41,6 @@ place_model = api.model(
         'price': fields.Float(required=True),
         'latitude': fields.Float(required=True),
         'longitude': fields.Float(required=True),
-        'owner_id': fields.String(required=True),
         'amenities': fields.List(fields.String, required=False)
     }
 )
@@ -50,14 +50,19 @@ place_model = api.model(
 class PlaceList(Resource):
 
     @api.expect(place_model, validate=True)
+    @jwt_required()
     def post(self):
+        """Create a new place - authenticated users only"""
+        # Get owner_id from JWT token instead of request body
+        current_user_id = get_jwt_identity()
         data = request.json
+        data['owner_id'] = current_user_id
 
         try:
             place = facade.create_place(data)
         except ValueError as e:
             return {"error": str(e)}, 400
-        print("Received:", data)
+
         return {
             "id": place.id,
             "title": place.title,
@@ -69,6 +74,7 @@ class PlaceList(Resource):
         }, 201
 
     def get(self):
+        """Retrieve all places - public endpoint"""
         places = facade.get_all_places()
 
         return [
@@ -89,12 +95,13 @@ class PlaceList(Resource):
 class PlaceResource(Resource):
 
     def get(self, place_id):
+        """Retrieve place details - public endpoint"""
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
 
         owner = facade.get_user(place.owner_id)
-        
+
         amenities = []
         for a in place.amenities:
             if isinstance(a, str):
@@ -120,34 +127,35 @@ class PlaceResource(Resource):
                 "email": owner.email
             } if owner else None,
             "amenities": [
-                {
-                    "id": am.id,
-                    "name": am.name
-                }
+                {"id": am.id, "name": am.name}
                 for am in amenities
             ],
             "reviews": [
-                {
-                    "id": r.id,
-                    "text": r.text,
-                    "rating": r.rating,
-                    "user_id": r.user_id
-                }
+                {"id": r.id, "text": r.text, "rating": r.rating, "user_id": r.user_id}
                 for r in reviews
             ]
         }, 200
 
     @api.expect(place_model)
+    @jwt_required()
     def put(self, place_id):
+        """Update a place - only the owner can modify"""
+        current_user_id = get_jwt_identity()
+
+        place = facade.get_place(place_id)
+        if not place:
+            return {"error": "Place not found"}, 404
+
+        # Ownership check: only the owner can update their place
+        if place.owner_id != current_user_id:
+            return {"error": "Unauthorized action"}, 403
+
         data = request.json
 
         try:
             updated = facade.update_place(place_id, data)
         except ValueError as e:
             return {"error": str(e)}, 400
-
-        if not updated:
-            return {"error": "Place not found"}, 404
 
         return {"message": "Place updated successfully"}, 200
 
@@ -156,6 +164,7 @@ class PlaceResource(Resource):
 class PlaceReviewList(Resource):
 
     def get(self, place_id):
+        """Get reviews for a place - public endpoint"""
         place = facade.get_place(place_id)
         if not place:
             return {'error': 'Place not found'}, 404
