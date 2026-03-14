@@ -4,14 +4,12 @@
 
 ```mermaid
 erDiagram
-    %% Relationship Definitions
     User ||--o{ Place : owns
     User ||--o{ Review : writes
     Place ||--o{ Review : receives
     Place ||--o{ Place_Amenity : has
     Amenity ||--o{ Place_Amenity : belongs_to
 
-    %% User Table
     User {
         string id PK
         string first_name
@@ -21,7 +19,6 @@ erDiagram
         boolean is_admin
     }
 
-    %% Place Table
     Place {
         string id PK
         string title
@@ -32,7 +29,6 @@ erDiagram
         string owner_id FK
     }
 
-    %% Review Table
     Review {
         string id PK
         string text
@@ -41,13 +37,11 @@ erDiagram
         string place_id FK
     }
 
-    %% Amenity Table
     Amenity {
         string id PK
         string name
     }
 
-    %% Place_Amenity Junction Table
     Place_Amenity {
         string place_id FK
         string amenity_id FK
@@ -134,7 +128,7 @@ This junction table handles the **Many-to-Many** relationship between Place and 
 | `PK` | Primary Key  |
 | `FK` | Foreign Key  |
 | `UK` | Unique Key  |
-| `||` | Exactly one  |
+| `\|` | Exactly one  |
 | `o{` | Zero or more  |
 
 ---
