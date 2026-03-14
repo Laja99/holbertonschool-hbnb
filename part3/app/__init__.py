@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_restx import Api
-from config import DevelopmentConfig, TestingConfig, ProductionConfig
 from .extensions import db, migrate, jwt, bcrypt
 
 def create_app(config_class="config.DevelopmentConfig"):
