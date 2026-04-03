@@ -82,6 +82,50 @@ Ensure proper data validation and constraints in models.
 
 ---
 
+### **4. Simple Web Client**
+
+- **Design & Structure**
+
+Login Page: Form for user credentials.
+
+List of Places: Grid or list view of available properties.
+
+Place Details: Detailed view of a specific property.
+
+Add Review: Interactive form for feedback.
+
+- **Authentication (Login)**
+
+Implement the login logic by sending a POST request to your back-end.
+
+Upon successful login, capture the JWT token.
+
+Store the token in a cookie to manage the user session efficiently.
+
+- **List of Places (Main Page)**
+
+Fetch all places from the API and display them dynamically.
+
+Client-side Filtering: Implement a filter to sort places by country.
+
+Auth Guard: Ensure that unauthenticated users are redirected to the login page.
+
+- **Place Details**
+
+Retrieve specific place information using the place_id from the URL.
+
+Display amenities, descriptions, and existing reviews.
+
+Conditionally display the "Add Review" button only if the user is logged in.
+
+- **Add Review**
+
+Develop the submission form for reviews.
+
+Strictly restrict access to authenticated users; unauthorized attempts should redirect back to the index page.
+
+---
+
 ## Authors
 
 **Fai AlSharekh** - [GitHub](https://github.com/Fai-Web-Lab)  
