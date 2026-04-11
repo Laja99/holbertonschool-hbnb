@@ -131,7 +131,7 @@ class PlaceResource(Resource):
                 for am in amenities
             ],
             "reviews": [
-                {"id": r.id, "text": r.text, "rating": r.rating, "user_id": r.user_id}
+                {"id": r.id, "text": r.text, "rating": r.rating, "user_id": r.user_id, "user_name": r.user.first_name}
                 for r in reviews
             ]
         }, 200
@@ -178,7 +178,8 @@ class PlaceReviewList(Resource):
                 'id': r.id,
                 'text': r.text,
                 'rating': r.rating,
-                'user_id': r.user_id
+                'user_id': r.user_id,
+                "user_name": r.user.first_name
             }
             for r in reviews
         ], 200

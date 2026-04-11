@@ -65,6 +65,7 @@ class ReviewList(Resource):
                 'text': r.text,
                 'rating': r.rating,
                 'user_id': r.user_id,
+                'user_name': r.user.first_name,
                 'place_id': r.place_id
             }
             for r in reviews

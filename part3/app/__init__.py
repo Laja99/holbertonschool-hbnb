@@ -1,9 +1,12 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_restx import Api
 from .extensions import db, migrate, jwt, bcrypt
 
 def create_app(config_class="config.DevelopmentConfig"):
     app = Flask(__name__, instance_relative_config=True)
+
+    CORS(app, origins=["http://127.0.0.1:5500", "http://localhost:5500"], supports_credentials=True)
 
     app.config.from_object(config_class)
     app.config.from_pyfile("config.py", silent=True)
@@ -26,12 +29,22 @@ def create_app(config_class="config.DevelopmentConfig"):
     def expired_token_callback(jwt_header, jwt_payload):
         return {"error": "Token has expired"}, 401
 
+    authorizations = {
+        'apiKey': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': "Type in the set field: Bearer <your_token>"
+        }
+    }
     api = Api(
         app,
         version='1.0',
         title='HBnB API',
         description='HBnB Application API with JWT Authentication',
-        doc='/api/v1/'
+        doc='/api/v1/',
+        authorizations=authorizations,
+        security='apiKey'
     )
 
     try:
