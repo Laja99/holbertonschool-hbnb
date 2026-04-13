@@ -122,6 +122,17 @@ class HBnBFacade:
 
         self.place_repo.update(place_id, place_data)
         return place
+    
+    def delete_place(self, place_id):
+        place = self.get_place(place_id)
+        if not place:
+            raise ValueError("Place not found")
+        
+        reviews = self.get_reviews_for_place(place_id)
+        for review in reviews:
+            self.review_repo.delete(review.id)
+
+        return self.place_repo.delete(place_id)
 
 
     def get_amenities_for_place(self, place_id):

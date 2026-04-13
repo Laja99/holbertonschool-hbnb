@@ -135,6 +135,27 @@ class PlaceResource(Resource):
                 for r in reviews
             ]
         }, 200
+    
+    @jwt_required()
+    def delete(self, place_id):
+        """Delete a place - only owner or admin can delete"""
+        current_user_id = get_jwt_identity()
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
+
+        place = facade.get_place(place_id)
+        if not place:
+            return {"error": "Place not found"}, 404
+
+        if not is_admin and place.owner_id != current_user_id:
+            return {"error": "Unauthorized action"}, 403
+
+        try:
+            facade.delete_place(place_id)
+        except Exception as e:
+            return {"error": str(e)}, 400
+
+        return {"message": "Place deleted successfully"}, 200
 
     @api.expect(place_model)
     @jwt_required()
@@ -153,7 +174,8 @@ class PlaceResource(Resource):
             return {"error": "Unauthorized action"}, 403
 
         data = request.json
-
+        if 'owner_id' in data:
+            del data['owner_id']
         try:
             updated = facade.update_place(place_id, data)
         except ValueError as e:

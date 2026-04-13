@@ -157,17 +157,28 @@ function displayPlaceDetails(place) {
 function displayReviews(reviews) {
     const reviewsSection = document.getElementById('reviews');
     if (!reviewsSection) return;
+
+    const currentUserId = sessionStorage.getItem('userId');
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+
     let html = '<h2 class="reviews-header">Reviews</h2>';
     if (!reviews || reviews.length === 0) {
         html += '<div class="review-card"><p>No reviews yet.</p></div>';
     } else {
         reviews.forEach(review => {
             const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+            const canDelete = (String(review.user_id) === String(currentUserId) || isAdmin);
             html += `
                 <div class="review-card">
                     <p><strong>${review.user_name}:</strong></p>
                     <p>${review.text || 'No review text'}</p> 
                     <p class="rating-stars">Rating: ${stars}</p>
+                    
+                    ${canDelete ? `
+                        <button onclick="deleteReview('${review.id}')" class="delete-review-btn">
+                            Delete Review
+                        </button>
+                    ` : ''}
                 </div>
             `;
         });
@@ -188,7 +199,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await loginUser(email, password);
             if (result.success) {
                 setCookie('token', result.token, 7);
-                sessionStorage.setItem('userName', result.userData.first_name || email.split('@')[0]);
+                const userId = result.userData.user_id || result.userData.id || (result.userData.user && result.userData.user.id);
+                const isAdmin = result.userData.is_admin || (result.userData.user && result.userData.user.is_admin) || false;
+                const firstName = result.userData.first_name || result.userData.full_name || email.split('@')[0];
+
+                sessionStorage.setItem('userId', userId);
+                sessionStorage.setItem('isAdmin', isAdmin);
+                sessionStorage.setItem('userName', firstName);
+
                 window.location.href = 'index.html';
             } else {
                 const errorDiv = document.getElementById('error-message');
@@ -243,3 +261,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+async function deleteReview(reviewId) {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+
+    const token = getCookie('token');
+    if (!token) {
+        alert('You must be logged in to delete a review.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            alert('Review deleted successfully!');
+            location.reload(); // إعادة تحميل الصفحة لتختفي المراجعة
+        } else {
+            const data = await response.json();
+            alert(`Error: ${data.error || 'Failed to delete review'}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while trying to delete the review.');
+    }
+}

@@ -44,7 +44,8 @@ nav a:hover {
 .login-button, 
 .logout-button, 
 .view-details-btn, 
-.details-button, 
+.details-button,
+.delete-review-btn,
 button[type="submit"] {
     background-color: var(--accent-red) !important;
     color: white !important;
@@ -59,6 +60,15 @@ button[type="submit"] {
     transition: all 0.3s ease;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.delete-review-btn:hover {
+    background-color: #cc0000;
+    transform: scale(1.05);
+}
+
+.delete-review-btn:active {
+    transform: scale(0.95);
 }
 
 .login-button:hover, 
