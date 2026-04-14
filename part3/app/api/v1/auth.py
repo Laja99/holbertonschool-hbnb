@@ -21,6 +21,13 @@ class LoginResource(Resource):
                 identity=str(user.id), 
                 additional_claims={'is_admin': user.is_admin}
             )
-            return {'access_token': access_token}, 200
+            return {
+        'access_token': access_token,
+        'user': {
+            'id': str(user.id),
+            'first_name': user.first_name,
+            'is_admin': user.is_admin
+        }
+    }, 200
         
         return {'error': 'Invalid email or password'}, 401
