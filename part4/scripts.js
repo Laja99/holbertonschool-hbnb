@@ -1,25 +1,31 @@
+// Server API endpoint address
 const API_URL = 'http://127.0.0.1:5000/api/v1';
 
+// Function to extract a cookie value by name
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
+// Function to save a cookie with an expiration date
 function setCookie(name, value, days = 7) {
     const expires = new Date();
     expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
     document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
 }
 
+// Function to get the 'id' parameter from the URL query string
 function getPlaceIdFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
 }
 
+// Function to check if the user is logged in and update the UI
 function checkAuthentication() {
     const token = getCookie('token');
     
+    // If user is on 'add_review' page and not logged in, redirect to home
     if (window.location.pathname.includes('add_review.html') && !token) {
         window.location.href = 'index.html';
         return null;
@@ -28,6 +34,7 @@ function checkAuthentication() {
     const loginLink = document.querySelector('.login-button');
     const userDisplay = document.getElementById('user-name');
 
+    // If token exists, change 'Login' to 'Logout' and show user name
     if (token) {
         if (loginLink) {
             loginLink.textContent = 'Logout';
@@ -46,12 +53,15 @@ function checkAuthentication() {
     return token;
 }
 
+// Function to clear user session and log out
 function logoutUser() {
+    // Delete the token cookie and clear session storage
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     sessionStorage.clear();
-    window.location.reload();
+    window.location.reload(); // Refresh the page to update UI
 }
 
+// Async function to handle user login request
 async function loginUser(email, password) {
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
@@ -69,22 +79,24 @@ async function loginUser(email, password) {
     }
 }
 
+// Async function to fetch all places from the database
 async function fetchPlaces() {
     try {
         const response = await fetch(`${API_URL}/places/`);
         if (response.ok) {
             const places = await response.json();
-            displayPlaces(places);
+            displayPlaces(places); // Call function to render places on screen
         }
     } catch (error) {
         console.error('Error:', error);
     }
 }
 
+// Function to render place cards into the HTML container
 function displayPlaces(places) {
     const container = document.getElementById('places-list');
     if (!container) return;
-    container.innerHTML = '';
+    container.innerHTML = ''; // Clear container before adding items
     places.forEach(place => {
         const article = document.createElement('article');
         article.className = 'place-card';
@@ -100,6 +112,7 @@ function displayPlaces(places) {
     });
 }
 
+// Function to initialize and handle the price filter dropdown
 function setupPriceFilter() {
     const filter = document.getElementById('price-filter');
     if (!filter) return;
@@ -111,6 +124,8 @@ function setupPriceFilter() {
         opt.textContent = p === "All" ? "All" : `Up to $${p}`;
         filter.appendChild(opt);
     });
+
+    // Event listener to filter visible cards when the price selection changes
     filter.addEventListener('change', (e) => {
         const maxPrice = e.target.value;
         const cards = document.querySelectorAll('.place-card');
@@ -121,13 +136,14 @@ function setupPriceFilter() {
     });
 }
 
+// Async function to fetch full details of a single place
 async function fetchPlaceDetails(placeId) {
     try {
         const response = await fetch(`${API_URL}/places/${placeId}`);
         if (response.ok) {
             const place = await response.json();
-            displayPlaceDetails(place);
-            displayReviews(place.reviews);
+            displayPlaceDetails(place); // Show place info
+            displayReviews(place.reviews); // Show associated reviews
             if (document.getElementById('reviewing-title')) {
                 document.getElementById('reviewing-title').textContent = `Reviewing: ${place.title}`;
             }
@@ -137,6 +153,7 @@ async function fetchPlaceDetails(placeId) {
     }
 }
 
+// Function to build the HTML for place details
 function displayPlaceDetails(place) {
     const container = document.getElementById('place-details');
     if (!container) return;
@@ -154,6 +171,7 @@ function displayPlaceDetails(place) {
     `;
 }
 
+// Function to build and display the reviews section
 function displayReviews(reviews) {
     const reviewsSection = document.getElementById('reviews');
     if (!reviewsSection) return;
@@ -167,6 +185,7 @@ function displayReviews(reviews) {
     } else {
         reviews.forEach(review => {
             const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+            // Permission check: only the author or an admin can delete a review
             const canDelete = (String(review.user_id) === String(currentUserId) || isAdmin);
             html += `
                 <div class="review-card">
@@ -186,10 +205,12 @@ function displayReviews(reviews) {
     reviewsSection.innerHTML = html;
 }
 
+// Main event listener that triggers when the page finishes loading
 document.addEventListener('DOMContentLoaded', () => {
-    const token = checkAuthentication();
-    const placeId = getPlaceIdFromURL();
+    const token = checkAuthentication(); // Initialize auth check
+    const placeId = getPlaceIdFromURL(); // Get ID from URL
 
+    // Handle login form submission logic
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
@@ -199,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await loginUser(email, password);
             if (result.success) {
                 setCookie('token', result.token, 7);
+                // Store user info in session storage for UI persistence
                 const userId = result.userData.user_id || result.userData.id || (result.userData.user && result.userData.user.id);
                 const isAdmin = result.userData.is_admin || (result.userData.user && result.userData.user.is_admin) || false;
                 const firstName = result.userData.first_name || result.userData.full_name || email.split('@')[0];
@@ -218,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Load data based on which page the user is currently on
     if (document.getElementById('places-list')) {
         fetchPlaces();
         setupPriceFilter();
@@ -227,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchPlaceDetails(placeId);
     }
 
+    // Handle the submission of new reviews
     const reviewForm = document.getElementById('review-form');
     if (reviewForm && token && placeId) {
         reviewForm.addEventListener('submit', async (e) => {
@@ -262,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Async function to handle deleting a review
 async function deleteReview(reviewId) {
     if (!confirm('Are you sure you want to delete this review?')) return;
 
@@ -282,7 +307,7 @@ async function deleteReview(reviewId) {
 
         if (response.ok) {
             alert('Review deleted successfully!');
-            location.reload(); // إعادة تحميل الصفحة لتختفي المراجعة
+            location.reload(); // Reload the page to reflect changes
         } else {
             const data = await response.json();
             alert(`Error: ${data.error || 'Failed to delete review'}`);

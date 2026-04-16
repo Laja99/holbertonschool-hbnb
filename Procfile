@@ -1,0 +1,1 @@
+web: gunicorn --chdir part3 run:app

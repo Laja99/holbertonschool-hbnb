@@ -132,11 +132,14 @@ button[type="submit"]:hover {
 
 .place-card {
     display: flex;
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
     flex-direction: column;
     background-color: #ffffff;
-    width: calc(33.333% - 20px); 
+    width: calc(33.333% - 30px); 
     min-width: 300px;
-    border-radius: 16px;
     box-shadow: 0 4px 20px rgba(39, 55, 77, 0.08);
     overflow: hidden;
     transition: all 0.3s ease;
@@ -243,10 +246,10 @@ footer p {
 .review-card {
     background: white;
     max-width: 800px;
-    margin: 15px auto;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #eee;
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 

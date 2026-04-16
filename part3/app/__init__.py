@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, app
 from flask_cors import CORS
 from flask_restx import Api
 from .extensions import db, migrate, jwt, bcrypt
@@ -6,7 +6,7 @@ from .extensions import db, migrate, jwt, bcrypt
 def create_app(config_class="config.DevelopmentConfig"):
     app = Flask(__name__, instance_relative_config=True)
 
-    CORS(app, origins=["http://127.0.0.1:5501", "http://localhost:5501"], supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     app.config.from_object(config_class)
     app.config.from_pyfile("config.py", silent=True)
