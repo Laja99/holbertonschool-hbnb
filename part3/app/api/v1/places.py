@@ -41,6 +41,8 @@ place_model = api.model(
         'price': fields.Float(required=True),
         'latitude': fields.Float(required=True),
         'longitude': fields.Float(required=True),
+        'city_id': fields.String(required=True, description='City ID'),
+        'image_url': fields.String(description='URL of the place image'),
         'amenities': fields.List(fields.String, required=False)
     }
 )
@@ -70,6 +72,9 @@ class PlaceList(Resource):
             "price": place.price,
             "latitude": place.latitude,
             "longitude": place.longitude,
+            "city_id": place.city_id,
+            "image_url": place.image_url,
+            "image_url": place.image_url,
             "owner_id": place.owner_id
         }, 201
 
@@ -85,7 +90,9 @@ class PlaceList(Resource):
                 "price": p.price,
                 "latitude": p.latitude,
                 "longitude": p.longitude,
-                "owner_id": p.owner_id
+                "owner_id": p.owner_id,
+                "city_id": p.city_id,
+                "image_url": p.image_url
             }
             for p in places
         ], 200
@@ -101,6 +108,7 @@ class PlaceResource(Resource):
             return {"error": "Place not found"}, 404
 
         owner = facade.get_user(place.owner_id)
+        city = facade.get_city(place.city_id)
 
         amenities = []
         for a in place.amenities:
@@ -120,6 +128,11 @@ class PlaceResource(Resource):
             "price": place.price,
             "latitude": place.latitude,
             "longitude": place.longitude,
+            "image_url": place.image_url,
+            "city": {
+                "id": city.id,
+                "name": city.name
+            } if city else {"id": place.city_id},
             "owner": {
                 "id": owner.id,
                 "first_name": owner.first_name,

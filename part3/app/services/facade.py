@@ -2,6 +2,7 @@ from app.models.user import User
 from app.models.amenity import Amenity
 from app.models.place import Place
 from app.models.review import Review
+from app.models.city import City
 from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 from app.persistence import UserRepository
 
@@ -12,6 +13,7 @@ class HBnBFacade:
         self.place_repo = SQLAlchemyRepository(Place)
         self.review_repo = SQLAlchemyRepository(Review)
         self.amenity_repo = SQLAlchemyRepository(Amenity)
+        self.city_repo = SQLAlchemyRepository(City)
 
     # ===== USERS =====
     def create_user(self, user_data):
@@ -47,6 +49,19 @@ class HBnBFacade:
     def get_admin_users(self):
         return self.user_repo.get_admin_users()
 
+# ===== CITIES =====
+    def create_city(self, city_data):
+        city = City(**city_data)
+        self.city_repo.add(city)
+        return city
+
+    def get_city(self, city_id):
+        return self.city_repo.get(city_id)
+
+    def get_all_cities(self):
+        return self.city_repo.get_all()
+    
+
     # ===== PLACES =====
     def create_place(self, place_data):
 
@@ -54,6 +69,11 @@ class HBnBFacade:
         owner = self.get_user(owner_id)
         if not owner:
             raise ValueError("Invalid owner_id: user does not exist")
+        
+        city_id = place_data.get("city_id")
+        city = self.get_city(city_id)
+        if not city:
+            raise ValueError("Invalid city_id: city does not exist")
 
         amenity_ids = place_data.get("amenities", [])
         amenities = []
@@ -70,6 +90,8 @@ class HBnBFacade:
             price=place_data["price"],
             latitude=place_data["latitude"],
             longitude=place_data["longitude"],
+            city_id=city_id,
+            image_url=place_data.get("image_url"),
             owner_id = owner_id,
             amenities=amenities,
         )
@@ -92,6 +114,15 @@ class HBnBFacade:
             if not owner:
                 raise ValueError("Invalid owner_id: user does not exist")
             place.owner_id = place_data["owner_id"]
+
+        if "city_id" in place_data:
+            city = self.get_city(place_data["city_id"])
+            if not city:
+                raise ValueError("Invalid city_id: city does not exist")
+            place.city_id = place_data["city_id"]
+
+        if "image_url" in place_data:
+            place.image_url = place_data["image_url"]
 
         if "amenities" in place_data:
             amenity_ids = place_data.get("amenities", [])

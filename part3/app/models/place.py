@@ -18,17 +18,20 @@ class Place(BaseModel):
     price = db.Column(db.Float, nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
     owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    city_id = db.Column(db.String(36), db.ForeignKey('cities.id'), nullable=False)
 
     # One-to-Many: User owns many Places
     owner = db.relationship('User', backref=db.backref('places', lazy=True))
+    city = db.relationship('City', backref=db.backref('places', lazy=True))
     # One-to-Many: Place has many Reviews (delete reviews if place is deleted)
     reviews = db.relationship('Review', backref='place', lazy=True, cascade='all, delete-orphan')
     # Many-to-Many: Place has many Amenities
     amenities = db.relationship('Amenity', secondary=place_amenity, backref=db.backref('places', lazy=True))
 
-    def __init__(self, title, price, latitude, longitude, owner_id,
-                 description=None, amenities=None, **kwargs):
+    def __init__(self, title, price, latitude, longitude, owner_id, city_id,
+                 description=None, image_url=None, amenities=None, **kwargs):
         super().__init__(**kwargs)
 
         if not title:
@@ -41,6 +44,8 @@ class Place(BaseModel):
             raise ValueError("Latitude must be between -90 and 90")
         if longitude is None or not (-180 <= longitude <= 180):
             raise ValueError("Longitude must be between -180 and 180")
+        if not city_id:
+            raise ValueError("City ID is required")
 
         self.title = title
         self.description = description
@@ -48,6 +53,8 @@ class Place(BaseModel):
         self.latitude = latitude
         self.longitude = longitude
         self.owner_id = owner_id
+        self.city_id = city_id
+        self.image_url = image_url
 
         if amenities:
             for amenity in amenities:
@@ -62,7 +69,9 @@ class Place(BaseModel):
             "price": self.price,
             "latitude": self.latitude,
             "longitude": self.longitude,
+            "image_url": self.image_url,
             "owner_id": self.owner_id,
+            "city_id": self.city_id,
             "amenities": [a.id for a in self.amenities],
             "reviews": [r.id for r in self.reviews],
         })
