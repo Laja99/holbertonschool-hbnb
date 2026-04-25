@@ -76,9 +76,13 @@ class HBnBFacade:
             raise ValueError("Invalid city_id: city does not exist")
 
         amenity_ids = place_data.get("amenities", [])
+        if isinstance(amenity_ids, str):
+            amenity_ids = [amenity_ids]
         amenities = []
 
         for amenity_id in amenity_ids:
+            if not amenity_id or len(str(amenity_id)) < 30: 
+                continue
             amenity = self.get_amenity(amenity_id)
             if not amenity:
                 raise ValueError(f"Invalid amenity_id: {amenity_id}")

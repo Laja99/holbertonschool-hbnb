@@ -86,6 +86,8 @@ async function fetchPlaces() {
         if (response.ok) {
             const places = await response.json();
             displayPlaces(places); // Call function to render places on screen
+            setupPriceFilter();
+            setupCityFilter(places);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -101,7 +103,11 @@ function displayPlaces(places) {
         const article = document.createElement('article');
         article.className = 'place-card';
         article.setAttribute('data-price', place.price);
+        article.setAttribute('data-city', place.city ? place.city.name : 'Unknown');
         article.innerHTML = `
+            <div class="place-image">
+                <img src="${place.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${place.title}">
+            </div>
             <div class="place-info">
                 <h2>${place.title}</h2> 
                 <p>Price per night: $${place.price}</p>
@@ -112,27 +118,62 @@ function displayPlaces(places) {
     });
 }
 
-// Function to initialize and handle the price filter dropdown
+/**
+ * Sets up the price dropdown with specified ranges and triggers filtering.
+ */
 function setupPriceFilter() {
     const filter = document.getElementById('price-filter');
     if (!filter) return;
-    const prices = ["All", "10", "50", "100"];
+    
+    const prices = ["All", "10", "50", "100", "500", "1000"];
     filter.innerHTML = '';
+    
     prices.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p;
-        opt.textContent = p === "All" ? "All" : `Up to $${p}`;
+        opt.textContent = p === "All" ? "All Prices" : `Up to $${p}`;
         filter.appendChild(opt);
     });
 
-    // Event listener to filter visible cards when the price selection changes
-    filter.addEventListener('change', (e) => {
-        const maxPrice = e.target.value;
-        const cards = document.querySelectorAll('.place-card');
-        cards.forEach(card => {
-            const price = parseFloat(card.getAttribute('data-price'));
-            card.style.display = (maxPrice === "All" || price <= parseFloat(maxPrice)) ? 'flex' : 'none';
-        });
+    filter.addEventListener('change', applyFilters);
+}
+
+/**
+ * Dynamically builds the city filter based on loaded data.
+ */
+function setupCityFilter(places) {
+    const cityFilter = document.getElementById('city-filter');
+    if (!cityFilter) return;
+
+    const cities = ["All", ...new Set(places.map(place => place.city ? place.city.name : null).filter(n => n))];
+    
+    cityFilter.innerHTML = '';
+    cities.forEach(city => {
+        const opt = document.createElement('option');
+        opt.value = city;
+        opt.textContent = city === "All" ? "All Cities" : city;
+        cityFilter.appendChild(opt);
+    });
+
+    cityFilter.addEventListener('change', applyFilters);
+}
+
+/**
+ * Core filtering logic: Handles both City and Price simultaneously.
+ */
+function applyFilters() {
+    const priceLimit = document.getElementById('price-filter').value;
+    const selectedCity = document.getElementById('city-filter').value;
+    const cards = document.querySelectorAll('.place-card');
+
+    cards.forEach(card => {
+        const price = parseFloat(card.getAttribute('data-price'));
+        const city = card.getAttribute('data-city');
+
+        const matchesPrice = (priceLimit === "All" || price <= parseFloat(priceLimit));
+        const matchesCity = (selectedCity === "All" || city === selectedCity);
+
+        card.style.display = (matchesPrice && matchesCity) ? 'flex' : 'none';
     });
 }
 
@@ -157,13 +198,26 @@ async function fetchPlaceDetails(placeId) {
 function displayPlaceDetails(place) {
     const container = document.getElementById('place-details');
     if (!container) return;
+
+    let hostName = 'Host';
+    if (place.owner && place.owner.first_name) {
+        hostName = `${place.owner.first_name} ${place.owner.last_name || ''}`;
+    }
+    
+    let amenitiesHTML = 'No amenities available';
+    if (place.amenities && Array.isArray(place.amenities) && place.amenities.length > 0) {
+        amenitiesHTML = place.amenities.map(a => typeof a === 'object' ? a.name : a).join(', ');
+    }
     container.innerHTML = `
         <h1 class="details-title">${place.title}</h1>
         <div class="main-details-card">
-            <p><strong>Host:</strong> ${place.host_name || 'Host'}</p>
+        <div class="place-detail-image" style="margin-bottom: 20px; text-align: center;">
+                <img src="${place.image_url}" alt="${place.title}" style="max-width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            </div>
+            <p><strong>Host:</strong> ${hostName}</p>
             <p><strong>Price per night:</strong> $${place.price}</p>
             <p><strong>Description:</strong> ${place.description}</p>
-            <p><strong>Amenities:</strong> ${place.amenities ? (Array.isArray(place.amenities) ? place.amenities.join(', ') : place.amenities) : 'WiFi, Pool, AC'}</p>
+            <p><strong>Amenities:</strong> ${amenitiesHTML}</p>
         </div>
         <div style="text-align: center; margin-top: 20px;">
             <a href="add_review.html?id=${place.id}" id="add-review-btn" class="details-button" style="background-color: #ff9800 !important;">Add a Review</a>

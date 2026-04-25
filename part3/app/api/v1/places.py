@@ -1,6 +1,7 @@
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from app.utils.cloudinary_handler import upload_place_image
 from app.services import facade
 
 api = Namespace('places', description='Place operations')
@@ -51,14 +52,29 @@ place_model = api.model(
 @api.route('/')
 class PlaceList(Resource):
 
-    @api.expect(place_model, validate=True)
+    @api.expect(place_model, validate=False)
     @jwt_required()
     def post(self):
         """Create a new place - authenticated users only"""
-        # Get owner_id from JWT token instead of request body
+
         current_user_id = get_jwt_identity()
-        data = request.json
+        
+        if request.content_type and request.content_type.startswith('multipart/form-data'):
+            data = request.form.to_dict()
+            image_file = request.files.get('image')
+            if image_file:
+                data['image_url'] = upload_place_image(image_file)
+        else:
+            data = request.json or {}
+
         data['owner_id'] = current_user_id
+
+        try:
+            if 'price' in data: data['price'] = float(data['price'])
+            if 'latitude' in data: data['latitude'] = float(data['latitude'])
+            if 'longitude' in data: data['longitude'] = float(data['longitude'])
+        except (ValueError, TypeError):
+            return {"error": "Invalid numeric values for price or coordinates"}, 400
 
         try:
             place = facade.create_place(data)
@@ -73,7 +89,6 @@ class PlaceList(Resource):
             "latitude": place.latitude,
             "longitude": place.longitude,
             "city_id": place.city_id,
-            "image_url": place.image_url,
             "image_url": place.image_url,
             "owner_id": place.owner_id
         }, 201
@@ -185,8 +200,15 @@ class PlaceResource(Resource):
         # Only owner or admin can update
         if not is_admin and place.owner_id != current_user_id:
             return {"error": "Unauthorized action"}, 403
+        
+        if request.content_type.startswith('multipart/form-data'):
+            data = request.form.to_dict()
+            image_file = request.files.get('image')
+            if image_file:
+                data['image_url'] = upload_place_image(image_file)
+        else:
+            data = request.json
 
-        data = request.json
         if 'owner_id' in data:
             del data['owner_id']
         try:
