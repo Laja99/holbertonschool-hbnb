@@ -90,3 +90,21 @@ class UserResource(Resource):
             return {"error": str(e)}, 400
         except TypeError as e:
             return {"error": str(e)}, 400
+        
+@api.route('/register')
+class UserRegister(Resource):
+    @api.expect(user_model, validate=True)
+    def post(self):
+        """Public endpoint to register a new user"""
+        user_data = api.payload
+        try:
+            user_data['is_admin'] = False 
+            new_user = facade.create_user(user_data)
+        except ValueError as e:
+            return {"error": str(e)}, 400
+
+        return {
+            "id": new_user.id,
+            "message": "User registered successfully"
+        }, 201
+    

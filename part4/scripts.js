@@ -78,6 +78,78 @@ async function loginUser(email, password) {
         return { success: false, error: 'Connection error' };
     }
 }
+// --- SIGNUP WITH AUTO-LOGIN FUNCTIONALITY ---
+
+// --- SIGNUP WITH REDIRECT TO LOGIN ---
+
+// Async function to handle user registration (Sign Up)
+async function signupUser(firstName, lastName, email, password) {
+    try {
+        const response = await fetch(`${API_URL}/users/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            return { success: true };
+        } else {
+            return { success: false, error: data.error || data.msg || 'Registration failed' };
+        }
+    } catch (error) {
+        console.error('Signup Error:', error);
+        return { success: false, error: 'Connection error. Please try again later.' };
+    }
+}
+
+// Event listener for the Signup Form submission
+document.addEventListener('DOMContentLoaded', () => {
+    const signupForm = document.getElementById('signup-form');
+
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const firstName = document.getElementById('first_name').value;
+            const lastName = document.getElementById('last_name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDisplay = document.getElementById('error-message');
+
+            if (errorDisplay) errorDisplay.style.display = 'none';
+
+            // 1. Attempt to Register the user
+            const result = await signupUser(firstName, lastName, email, password);
+
+            if (result.success) {
+                // 2. Show success message (You can also use a custom div instead of alert)
+                alert('Success! Your account has been created. Redirecting to login page...');
+
+                // 3. Redirect to the login page
+                window.location.href = 'login.html';
+            } else {
+                // 4. Display the error message if registration fails
+                if (errorDisplay) {
+                    errorDisplay.textContent = result.error;
+                    errorDisplay.style.display = 'block';
+                }
+            }
+        });
+    }
+
+    // Always check auth to keep header updated
+    checkAuthentication();
+});
 
 // Async function to fetch all places from the database
 async function fetchPlaces() {

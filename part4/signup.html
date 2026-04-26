@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Sign Up - HBnB</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="images/icon.png">
 </head>
 <body>
-        <header>
+    <header>
         <div class="logo">
             <a href="index.html">
                 <img src="images/logo.png" alt="HBnB Logo" class="logo-img">
@@ -19,25 +19,34 @@
             <a href="login.html" class="login-button">Login</a>
         </nav>
     </header>
-    <main class="login-page-main">
-        <form class="login-form" id="login-form" >
-            <h2>Login to Your Account</h2>
+
+    <main class="login-page-main"> <form class="login-form" id="signup-form"> <h2>Create Your Account</h2>
             <div id="error-message" class="error-message" style="display: none;"></div>
+            
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" required placeholder="Your first name">
+
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" required placeholder="Your last name">
+
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required placeholder="user@example.com">
             
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required placeholder="••••••••">
             
-            <button type="submit" class="submit-btn">Login</button>
+            <button type="submit" class="submit-btn">Sign Up</button>
+
             <p class="auth-redirect">
-                Don't have an account? <a href="signup.html">Register here</a>
+                Already have an account? <a href="login.html">Login here</a>
             </p>
         </form>
     </main>
+
     <footer>
         <p>&copy; 2026 HBnB Evolution. All rights reserved.</p>
     </footer>
+
     <script src="scripts.js"></script>
 </body>
 </html>

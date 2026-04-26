@@ -43,6 +43,23 @@ body {
     min-height: 40vh;
 }
 
+.auth-redirect {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+    text-align: center;
+}
+
+.auth-redirect a {
+    color: #ff5a5f;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-redirect a:hover {
+    text-decoration: underline;
+}
+
 header {
     background-image: url('images/saudi_arabia.png');
     background-size: cover;
