@@ -6,6 +6,8 @@
     <title>Place Details</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="images/icon.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
         <header>
@@ -24,7 +26,9 @@
         <section id="place-details">
             <!-- Place details will be populated dynamically -->
         </section>
+        <div id="map" style="height: 300px; width: 100%; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>
         <section id="reviews">
+        
             <!-- Reviews will be populated dynamically -->
         </section>
         <form id="review-form">

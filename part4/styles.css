@@ -32,6 +32,15 @@ body {
     background-color: var(--body-bg);
     color: var(--text-dark);
     line-height: 1.6;
+    min-height: 100vh;
+}
+
+.login-page-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 40vh;
 }
 
 header {

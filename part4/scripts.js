@@ -85,6 +85,7 @@ async function fetchPlaces() {
         const response = await fetch(`${API_URL}/places/`);
         if (response.ok) {
             const places = await response.json();
+            console.log("Data from Server:", places);
             displayPlaces(places); // Call function to render places on screen
             setupPriceFilter();
             setupCityFilter(places);
@@ -103,10 +104,9 @@ function displayPlaces(places) {
         const article = document.createElement('article');
         article.className = 'place-card';
         article.setAttribute('data-price', place.price);
-        article.setAttribute('data-city', place.city ? place.city.name : 'Unknown');
-        article.innerHTML = `
+        article.setAttribute('data-city', place.city_name || 'Unknown');        article.innerHTML = `
             <div class="place-image">
-                <img src="${place.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${place.title}">
+                <img src="${place.image_url}" alt="${place.title}" crossorigin="anonymous" >
             </div>
             <div class="place-info">
                 <h2>${place.title}</h2> 
@@ -131,7 +131,7 @@ function setupPriceFilter() {
     prices.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p;
-        opt.textContent = p === "All" ? "All Prices" : `Up to $${p}`;
+        opt.textContent = p === "All" ? "All Prices" : ` $${p}`;
         filter.appendChild(opt);
     });
 
@@ -143,9 +143,13 @@ function setupPriceFilter() {
  */
 function setupCityFilter(places) {
     const cityFilter = document.getElementById('city-filter');
-    if (!cityFilter) return;
+    if (!cityFilter || !places || places.length === 0) return;
 
-    const cities = ["All", ...new Set(places.map(place => place.city ? place.city.name : null).filter(n => n))];
+    const cities = ["All", ...new Set(places.map(place => {
+        if (place.city && place.city.name) return place.city.name;
+        if (place.city_name) return place.city_name; // احتياطاً إذا كان الاسم مختلفاً
+        return null;
+    }).filter(n => n))];
     
     cityFilter.innerHTML = '';
     cities.forEach(city => {
@@ -208,6 +212,7 @@ function displayPlaceDetails(place) {
     if (place.amenities && Array.isArray(place.amenities) && place.amenities.length > 0) {
         amenitiesHTML = place.amenities.map(a => typeof a === 'object' ? a.name : a).join(', ');
     }
+
     container.innerHTML = `
         <h1 class="details-title">${place.title}</h1>
         <div class="main-details-card">
@@ -223,6 +228,31 @@ function displayPlaceDetails(place) {
             <a href="add_review.html?id=${place.id}" id="add-review-btn" class="details-button" style="background-color: #ff9800 !important;">Add a Review</a>
         </div>
     `;
+        if (place.latitude && place.longitude) {
+        initMap(place.latitude, place.longitude, place.title);
+    }
+}
+
+/**
+ * Initializes and displays a map using Leaflet.js
+ */
+function initMap(lat, lng, title) {
+    if (!lat || !lng) {
+        console.error("Coordinates missing for this place.");
+        document.getElementById('map').innerText = "Map location not available.";
+        return;
+    }
+    const map = L.map('map').setView([lat, lng], 13);
+
+    //(OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // (Marker) 
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup(title)
+        .openPopup();
 }
 
 // Function to build and display the reviews section

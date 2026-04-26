@@ -43,6 +43,7 @@ place_model = api.model(
         'latitude': fields.Float(required=True),
         'longitude': fields.Float(required=True),
         'city_id': fields.String(required=True, description='City ID'),
+        'city_name': fields.String(required=True, description='Name of the city'),
         'image_url': fields.String(description='URL of the place image'),
         'amenities': fields.List(fields.String, required=False)
     }
@@ -89,6 +90,7 @@ class PlaceList(Resource):
             "latitude": place.latitude,
             "longitude": place.longitude,
             "city_id": place.city_id,
+            "city_name": place.city.name if place.city else "Unknown",
             "image_url": place.image_url,
             "owner_id": place.owner_id
         }, 201
@@ -107,6 +109,7 @@ class PlaceList(Resource):
                 "longitude": p.longitude,
                 "owner_id": p.owner_id,
                 "city_id": p.city_id,
+                "city_name": p.city.name if p.city else "Unknown",
                 "image_url": p.image_url
             }
             for p in places

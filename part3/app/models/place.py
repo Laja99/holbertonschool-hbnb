@@ -72,6 +72,7 @@ class Place(BaseModel):
             "image_url": self.image_url,
             "owner_id": self.owner_id,
             "city_id": self.city_id,
+            "city_name": self.city.name if self.city else "Unknown",
             "amenities": [a.id for a in self.amenities],
             "reviews": [r.id for r in self.reviews],
         })
